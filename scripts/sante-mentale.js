@@ -68,6 +68,26 @@ function smLevel(current, max) {
 /* ------------------------------------------------------------------ */
 
 /**
+ * Enregistre la nouvelle valeur et annonce en privé le changement de palier
+ * d'état si la modification en fait franchir un (dans un sens ou l'autre).
+ */
+async function commitValue(actor, cur, next, max) {
+  if (next === cur) return;
+
+  const before = smLevel(cur, max);
+  await actor.setFlag(MODULE_ID, "value", next);
+  const after = smLevel(next, max);
+
+  if (after.name !== before.name) {
+    ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `<em>${actor.name} passe de ${before.name} à ${after.name}.</em>`,
+      whisper: [game.user.id]
+    });
+  }
+}
+
+/**
  * Applique une nouvelle valeur. Accepte :
  *  - un nombre absolu : "42"
  *  - un delta : "+5" ou "-3" (comme les PV sur la fiche dnd5e)
@@ -84,7 +104,7 @@ async function applyInput(actor, rawText) {
   if (Number.isNaN(next)) next = cur;
   next = clamp(next, 0, max);
 
-  if (next !== cur) await actor.setFlag(MODULE_ID, "value", next);
+  await commitValue(actor, cur, next, max);
   return next;
 }
 
@@ -249,11 +269,12 @@ Hooks.on("dnd5e.restCompleted", async (actor, result) => {
     if (cur >= max) return;
 
     const next = Math.min(max, cur + 1);
-    await actor.setFlag(MODULE_ID, "value", next);
+    await commitValue(actor, cur, next, max);
 
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<em>${actor.name} récupère 1 point de Santé Mentale (repos long) : ${next}/${max}.</em>`
+      content: `<em>${actor.name} récupère 1 point de Santé Mentale (repos long) : ${next}/${max}.</em>`,
+      whisper: [game.user.id]
     });
   } catch (err) {
     console.error(`${MODULE_ID} | erreur lors du repos long`, err);

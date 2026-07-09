@@ -2,7 +2,7 @@
   "id": "sante-mentale",
   "title": "Santé Mentale",
   "description": "Système de santé mentale maison pour D&D 5e : score maximum calculé automatiquement (Sagesse ×5 + Mod. Int ×2 + Mod. Cha ×2), affichage du niveau d'état sur la fiche de personnage, et récupération de 1 point après chaque repos long.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authors": [
     { "name": "Jordan" }
   ],
