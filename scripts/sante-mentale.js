@@ -29,6 +29,14 @@ function clamp(v, min, max) {
   return Math.min(max, Math.max(min, v));
 }
 
+/** Échappe le HTML avant insertion dans un message de chat (ex. nom de personnage). */
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 /** SM maximum, recalculé en direct depuis les caractéristiques. */
 function smMax(actor) {
   const ab = actor?.system?.abilities;
@@ -81,7 +89,7 @@ async function commitValue(actor, cur, next, max) {
   if (after.name !== before.name) {
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<em>${actor.name} passe de ${before.name} à ${after.name}.</em>`,
+      content: `<em>${escapeHtml(actor.name)} passe de ${before.name} à ${after.name}.</em>`,
       whisper: [game.user.id]
     });
   }
@@ -273,7 +281,7 @@ Hooks.on("dnd5e.restCompleted", async (actor, result) => {
 
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<em>${actor.name} récupère 1 point de Santé Mentale (repos long) : ${next}/${max}.</em>`,
+      content: `<em>${escapeHtml(actor.name)} récupère 1 point de Santé Mentale (repos long) : ${next}/${max}.</em>`,
       whisper: [game.user.id]
     });
   } catch (err) {
