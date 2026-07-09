@@ -1,0 +1,31 @@
+{
+  "id": "sante-mentale",
+  "title": "Santé Mentale",
+  "description": "Système de santé mentale maison pour D&D 5e : score maximum calculé automatiquement (Sagesse ×5 + Mod. Int ×2 + Mod. Cha ×2), affichage du niveau d'état sur la fiche de personnage, et récupération de 1 point après chaque repos long.",
+  "version": "1.0.0",
+  "authors": [
+    { "name": "Jordan" }
+  ],
+  "url": "https://github.com/Kaellle/sante-mentale",
+  "manifest": "https://github.com/Kaellle/sante-mentale/releases/latest/download/module.json",
+  "download": "https://github.com/Kaellle/sante-mentale/releases/latest/download/sante-mentale.zip",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/sante-mentale.js"
+  ],
+  "styles": [
+    "styles/sante-mentale.css"
+  ]
+}
