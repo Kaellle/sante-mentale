@@ -1,6 +1,6 @@
 # Santé Mentale — module Foundry VTT (D&D 5e)
 
-Système de santé mentale maison, affiché dans l'en-tête de la fiche de personnage.
+Système de santé mentale maison pour la table des héritiers du Dragons, affiché dans l'en-tête de la fiche de personnage.
 
 ## Règles implémentées
 
@@ -22,18 +22,13 @@ Système de santé mentale maison, affiché dans l'en-tête de la fiche de perso
 
 **Récupération :** +1 SM après chaque repos long (message dans le chat).
 
-## Installation
-
-1. Ouvre le dossier de données de Foundry : `Data/modules/`
-2. Décompresse le zip dedans — tu dois obtenir `Data/modules/sante-mentale/module.json`
-3. Relance Foundry (ou F5), puis dans ton monde : **Paramètres → Gérer les modules → coche "Santé Mentale"**
-
 ## Utilisation
 
 - L'encart apparaît dans l'en-tête de la fiche de personnage, à côté du badge de niveau.
 - Le champ de gauche est la SM actuelle : tape une valeur (`42`), ou un delta comme sur les PV (`-5`, `+3`), puis Entrée.
 - La première fois, la SM est considérée au maximum.
 - La valeur est visible par les joueurs, modifiable uniquement par les propriétaires de la fiche (et le MJ).
+- Possibilité de déplacer l'encart avec un shift + clic gauche.
 
 ## API pour macros (optionnel)
 
@@ -45,9 +40,6 @@ sm.get(actor);                // valeur actuelle
 sm.max(actor);                // maximum
 sm.level(actor);              // "Stable", "Brisé", etc.
 ```
-
-Pratique pour un item macro MidiQOL : par exemple un sort d'horreur qui fait perdre de la SM à la cible.
-
 ## Données
 
 La valeur actuelle est stockée dans un flag de l'acteur : `flags.sante-mentale.value`.
