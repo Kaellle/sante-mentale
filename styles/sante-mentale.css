@@ -1,0 +1,106 @@
+/* ---- Encart Santé Mentale (en-tête de fiche) ---------------------- */
+
+.sm-tracker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 10px;
+  margin: 0 6px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid var(--dnd5e-color-gold, #9f9275);
+  border-radius: 8px;
+  backdrop-filter: blur(2px);
+  align-self: center;
+  touch-action: none;
+}
+
+/* Indice visuel : Shift enfoncé -> l'encart peut être saisi et glissé. */
+body.sm-shift-held .sm-tracker {
+  cursor: grab;
+}
+
+.sm-tracker.sm-tracker--dragging {
+  cursor: grabbing;
+  opacity: 0.85;
+  z-index: 100;
+}
+
+.sm-tracker .sm-label {
+  font-family: var(--dnd5e-font-roboto-condensed, "Roboto Condensed", sans-serif);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--dnd5e-color-gold, #9f9275);
+  white-space: nowrap;
+}
+
+.sm-tracker .sm-values {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.sm-tracker input.sm-current {
+  width: 42px;
+  height: 22px;
+  padding: 0;
+  text-align: right;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sm-tracker input.sm-current:focus {
+  outline: none;
+  border-bottom-color: var(--dnd5e-color-gold, #9f9275);
+  box-shadow: none;
+}
+
+.sm-tracker input.sm-current:disabled {
+  color: #ddd;
+  opacity: 1;
+}
+
+.sm-tracker .sm-sep {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+}
+
+.sm-tracker .sm-max {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---- Pastille de niveau d'état ------------------------------------ */
+
+.sm-tracker .sm-level {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.sm-stable        { background: #2e7d32; }                       /* vert */
+.sm-stresse       { background: #9e9d24; }                       /* jaune-olive */
+.sm-perturbe      { background: #ef6c00; }                       /* orange */
+.sm-instable      { background: #d84315; }                       /* orange-rouge */
+.sm-desequilibre  { background: #b71c1c; }                       /* rouge */
+.sm-brise         { background: #6a1b9a; }                       /* violet sombre */
+.sm-perdu         { background: #212121; border: 1px solid #b71c1c; color: #ef9a9a; }
+
+/* ---- Sécurité : si l'encart retombe dans un header clair (vieille fiche) */
+.sheet-header:not(.dark) .sm-tracker {
+  background: rgba(0, 0, 0, 0.55);
+}
