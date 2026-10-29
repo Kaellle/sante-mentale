@@ -84,7 +84,7 @@ const AFFLICTIONS = {
     list: [
       { name: "Paranoïa légère",  effect: "Désavantage aux tests de Perspicacité liés à la confiance." },
       { name: "Phobie mineure",   effect: "Désavantage à tous les tests en présence du déclencheur." },
-      { name: "Insomnie",         effect: "25 % de chance de ne pas bénéficier d'un repos long." },
+      { name: "Troubles de mémoire", effect: "Oublis d'informations ou d'événements récents." },
       { name: "Cauchemars",       effect: "JS de Sagesse DD 12 après un repos long, sinon aucun bénéfice." },
       { name: "Anxiété",          effect: "-2 aux jets d'Initiative." },
       { name: "Compulsion",       effect: "Rituel ou comportement quotidien obligatoire ; sinon 1 niveau d'épuisement." }
@@ -97,7 +97,7 @@ const AFFLICTIONS = {
       { name: "Crises de panique",  effect: "20 % de chance d'être incapable d'agir pendant 1d4 rounds lors d'une situation stressante." },
       { name: "Phobie sévère",      effect: "JS de Sagesse DD 15 ou état Effrayé face au déclencheur." },
       { name: "Paranoïa sévère",    effect: "Désavantage à tous les tests sociaux avec des inconnus." },
-      { name: "Troubles de mémoire", effect: "Oublis d'informations ou d'événements récents." },
+      { name: "Insomnie",           effect: "25 % de chance de ne pas bénéficier d'un repos long." },
       { name: "Obsession",          effect: "Fixation maladive sur un objectif ou un comportement." }
     ]
   },
