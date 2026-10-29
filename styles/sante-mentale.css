@@ -100,6 +100,30 @@ body.sm-shift-held .sm-tracker {
 .sm-brise         { background: #6a1b9a; }                       /* violet sombre */
 .sm-perdu         { background: #212121; border: 1px solid #b71c1c; color: #ef9a9a; }
 
+/* ---- Faiblesse de l'Ombre ----------------------------------------- */
+
+.sm-tracker select.sm-shadow {
+  max-width: 150px;
+  height: 18px;
+  padding: 0 2px;
+  font-size: 10px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
+
+.sm-tracker select.sm-shadow option {
+  color: #000;
+}
+
+.sm-tracker .sm-shadow-name {
+  font-size: 10px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
 /* ---- Sécurité : si l'encart retombe dans un header clair (vieille fiche) */
 .sheet-header:not(.dark) .sm-tracker {
   background: rgba(0, 0, 0, 0.55);

@@ -55,16 +55,97 @@ function smCurrent(actor) {
   return clamp(Number(raw) || 0, 0, max);
 }
 
-/** Niveaux d'état, du meilleur au pire. */
+/**
+ * Niveaux d'état, du meilleur au pire.
+ * flaw : indice du défaut d'Ombre actif à ce palier (null = aucun).
+ */
 const LEVELS = [
-  { minPct: 90, name: "Stable",        cls: "sm-stable" },
-  { minPct: 75, name: "Stressé",       cls: "sm-stresse" },
-  { minPct: 50, name: "Perturbé",      cls: "sm-perturbe" },
-  { minPct: 25, name: "Instable",      cls: "sm-instable" },
-  { minPct: 10, name: "Déséquilibré",  cls: "sm-desequilibre" },
-  { minPct: 1,  name: "Brisé",         cls: "sm-brise" },
-  { minPct: -Infinity, name: "Perdu",  cls: "sm-perdu" }
+  { minPct: 90, name: "Stable",        cls: "sm-stable",       flaw: null },
+  { minPct: 75, name: "Stressé",       cls: "sm-stresse",      flaw: null },
+  { minPct: 50, name: "Perturbé",      cls: "sm-perturbe",     flaw: 0 },
+  { minPct: 25, name: "Instable",      cls: "sm-instable",     flaw: 1 },
+  { minPct: 10, name: "Déséquilibré",  cls: "sm-desequilibre", flaw: 2 },
+  { minPct: 1,  name: "Brisé",         cls: "sm-brise",        flaw: 3 },
+  { minPct: -Infinity, name: "Perdu",  cls: "sm-perdu",        flaw: 3 }
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Faiblesses de l'Ombre                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Faiblesses de l'Ombre et leurs 4 défauts, dans l'ordre du tableau des règles
+ * (1er défaut à Perturbé ... 4e défaut à Brisé).
+ * Choisie par le MD, stockée dans actor.flags["sante-mentale"].shadow
+ */
+const SHADOWS = {
+  vengeance: {
+    name: "Malédiction de la Vengeance",
+    flaws: [
+      { name: "Rancunier",  desc: "Règle ses comptes avec une rancune féroce, réelle ou imaginée. Cela peut aller d'une impolitesse marquée à de véritables insultes blessantes." },
+      { name: "Brutal",     desc: "Réagit avec violence à la moindre provocation. Manque cruellement de retenue, même dans les situations les plus simples." },
+      { name: "Cruel",      desc: "Indifférent à la souffrance qu'il cause, il devient inutilement sauvage et sadique envers ses ennemis." },
+      { name: "Meurtrier",  desc: "En vient à considérer le meurtre comme un outil normal pour parvenir à ses fins, ou simplement pour imposer sa volonté." }
+    ]
+  },
+  dragonSickness: {
+    name: "Cupidité draconique",
+    flaws: [
+      { name: "Avide",      desc: "Ne cherche qu'à accumuler richesses et objets précieux, non par besoin, mais par pur désir de possession." },
+      { name: "Méfiant",    desc: "Craint pour son trésor : même les conseils d'amis proches lui paraissent suspects." },
+      { name: "Fourbe",     desc: "N'éprouve aucune honte à mentir ou manipuler si cela sert ses intérêts. La fin justifie les moyens." },
+      { name: "Voleur",     desc: "Convaincu que tout ce qu'il désire lui revient de droit. Il vole sans remords, ayant sacrifié l'amour des siens et son propre respect." }
+    ]
+  },
+  power: {
+    name: "Soif de pouvoir",
+    flaws: [
+      { name: "Ressentiment",    desc: "En veut à ceux qu'il protège, persuadé que ses sacrifices ne sont pas reconnus. Il devient amer et aigri envers ses alliés." },
+      { name: "Arrogant",        desc: "S'empresse de souligner son importance à chaque occasion, souvent au détriment de ses compagnons, qu'il rabaisse ouvertement." },
+      { name: "Trop sûr de soi", desc: "Son orgueil aveuglant l'empêche de reconnaître ses propres limites. Il s'engage dans n'importe quelle action, sans souci des conséquences pour autrui." },
+      { name: "Tyrannique",      desc: "Érige ses désirs en croisade légitime, ignore la vie des autres et emploie n'importe quel moyen pour parvenir à ses fins. Toute opposition est une trahison impardonnable." }
+    ]
+  },
+  secrets: {
+    name: "Fascination des secrets",
+    flaws: [
+      { name: "Hautain",      desc: "Ne reconnaît pas la sagesse d'autrui, et rejette les conseils et les offres d'aide avec mépris." },
+      { name: "Moqueur",      desc: "Traite les idées et les initiatives des autres avec dérision, et saisit chaque occasion pour les ridiculiser." },
+      { name: "Manipulateur", desc: "Cache ses pensées et intentions, ne donne jamais de conseils et n'écoute que son propre jugement. Il peut faire mine d'accepter une idée... pour mieux la trahir ensuite." },
+      { name: "Traître",      desc: "Ne mérite plus la confiance de personne. Il est prêt à trahir ses amis et alliés dès que cela sert ses intérêts." }
+    ]
+  },
+  wandering: {
+    name: "Folie de l'errance",
+    flaws: [
+      { name: "Oisif",       desc: "Il faut beaucoup d'efforts pour le motiver. Il est facilement distrait et doit être poussé à agir, même dans des situations urgentes." },
+      { name: "Distrait",    desc: "Rêvasse constamment, perd le fil de ses pensées, et oublie facilement même les choses importantes." },
+      { name: "Indifférent", desc: "Se coupe du monde. Il n'éprouve plus de compassion, et perd tout intérêt pour ce qui ne le touche pas directement." },
+      { name: "Lâche",       desc: "Ne se soucie que de sa propre sécurité, quelles que soient les circonstances. Il est prêt à tout sacrifier pour sauver sa peau face au danger." }
+    ]
+  }
+};
+
+/** Faiblesse de l'Ombre attribuée par le MD (ou null). */
+function smShadow(actor) {
+  return SHADOWS[actor.getFlag(MODULE_ID, "shadow")] ?? null;
+}
+
+/** Défaut d'Ombre actif pour un palier donné (ou null). */
+function smFlaw(actor, lvl) {
+  const shadow = smShadow(actor);
+  if (!shadow || lvl.flaw === null) return null;
+  return { ...shadow.flaws[lvl.flaw], rank: lvl.flaw + 1 };
+}
+
+/** Contenu de l'infobulle de la pastille d'état. */
+function flawTooltip(actor, lvl) {
+  const shadow = smShadow(actor);
+  if (!shadow) return "Aucune Faiblesse de l'Ombre attribuée par le MD.";
+  const flaw = smFlaw(actor, lvl);
+  if (!flaw) return `<strong>${shadow.name}</strong><br>Aucun défaut d'Ombre actif.`;
+  return `<strong>${flaw.rank}${flaw.rank === 1 ? "er" : "e"} défaut d'Ombre : ${flaw.name}</strong><br>${flaw.desc}`;
+}
 
 function smLevel(current, max) {
   const pct = max > 0 ? (current / max) * 100 : 0;
@@ -87,9 +168,11 @@ async function commitValue(actor, cur, next, max) {
   const after = smLevel(next, max);
 
   if (after.name !== before.name) {
+    const flaw = smFlaw(actor, after);
+    const flawText = flaw ? ` Défaut d'Ombre : ${flaw.name}.` : "";
     ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
-      content: `<em>${escapeHtml(actor.name)} passe de ${before.name} à ${after.name}.</em>`,
+      content: `<em>${escapeHtml(actor.name)} passe de ${before.name} à ${after.name}.${flawText}</em>`,
       whisper: [game.user.id]
     });
   }
@@ -196,9 +279,22 @@ function buildTracker(actor) {
   const lvl = smLevel(cur, max);
   const editable = actor.isOwner;
 
+  const shadowKey = actor.getFlag(MODULE_ID, "shadow") ?? "";
+  const shadow = smShadow(actor);
+
+  // MD : liste déroulante ; joueur : simple rappel du nom de la faiblesse.
+  let shadowHtml = "";
+  if (game.user.isGM) {
+    const options = Object.entries(SHADOWS)
+      .map(([key, s]) => `<option value="${key}" ${key === shadowKey ? "selected" : ""}>${s.name}</option>`)
+      .join("");
+    shadowHtml = `<select class="sm-shadow"><option value="">Faiblesse de l'Ombre…</option>${options}</select>`;
+  } else if (shadow) {
+    shadowHtml = `<span class="sm-shadow-name">${shadow.name}</span>`;
+  }
+
   const el = document.createElement("div");
   el.classList.add("sm-tracker");
-  el.dataset.tooltip = "Santé Mentale — tapez une valeur, ou +X / -X";
   el.innerHTML = `
     <span class="sm-label">Santé Mentale</span>
     <div class="sm-values">
@@ -207,7 +303,20 @@ function buildTracker(actor) {
       <span class="sm-max">${max}</span>
     </div>
     <span class="sm-level ${lvl.cls}">${lvl.name}</span>
+    ${shadowHtml}
   `;
+  el.querySelector(".sm-values").dataset.tooltip = "Santé Mentale — tapez une valeur, ou +X / -X";
+
+  // Infobulle HTML : data-tooltip-html depuis Foundry v13, data-tooltip avant.
+  const badge = el.querySelector(".sm-level");
+  const tip = flawTooltip(actor, lvl);
+  if (game.release.generation >= 13) badge.dataset.tooltipHtml = tip;
+  else badge.dataset.tooltip = tip;
+
+  el.querySelector(".sm-shadow")?.addEventListener("change", async ev => {
+    if (ev.target.value) await actor.setFlag(MODULE_ID, "shadow", ev.target.value);
+    else await actor.unsetFlag(MODULE_ID, "shadow");
+  });
 
   const input = el.querySelector(".sm-current");
   input.addEventListener("change", async ev => {
@@ -311,6 +420,8 @@ Hooks.once("init", () => {
       max: smMax,
       get: smCurrent,
       level: (actor) => smLevel(smCurrent(actor), smMax(actor)).name,
+      shadow: (actor) => smShadow(actor)?.name ?? null,
+      flaw: (actor) => smFlaw(actor, smLevel(smCurrent(actor), smMax(actor)))?.name ?? null,
       set: async (actor, value) => applyInput(actor, String(value)),
       adjust: async (actor, delta) =>
         applyInput(actor, (delta >= 0 ? "+" : "") + delta)
