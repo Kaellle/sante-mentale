@@ -516,12 +516,14 @@ function buildTracker(actor) {
   el.classList.add("sm-tracker");
   el.innerHTML = `
     <span class="sm-label">Santé Mentale</span>
-    <div class="sm-values">
-      <input type="text" class="sm-current" value="${cur}" ${editable ? "" : "disabled"}>
-      <span class="sm-sep">/</span>
-      <span class="sm-max">${max}</span>
+    <div class="sm-row">
+      <div class="sm-values">
+        <input type="text" class="sm-current" value="${cur}" ${editable ? "" : "disabled"}>
+        <span class="sm-sep">/</span>
+        <span class="sm-max">${max}</span>
+      </div>
+      <span class="sm-level ${lvl.cls}">${lvl.name}</span>
     </div>
-    <span class="sm-level ${lvl.cls}">${lvl.name}</span>
     ${shadowHtml}
   `;
   el.querySelector(".sm-values").dataset.tooltip = "Santé Mentale — tapez une valeur, ou +X / -X";
