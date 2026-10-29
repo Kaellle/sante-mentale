@@ -58,16 +58,181 @@ function smCurrent(actor) {
 /**
  * Niveaux d'état, du meilleur au pire.
  * flaw : indice du défaut d'Ombre actif à ce palier (null = aucun).
+ * affliction : catégorie d'affliction tirée en descendant à ce palier (null = aucune).
  */
 const LEVELS = [
-  { minPct: 90, name: "Stable",        cls: "sm-stable",       flaw: null },
-  { minPct: 75, name: "Stressé",       cls: "sm-stresse",      flaw: null },
-  { minPct: 50, name: "Perturbé",      cls: "sm-perturbe",     flaw: 0 },
-  { minPct: 25, name: "Instable",      cls: "sm-instable",     flaw: 1 },
-  { minPct: 10, name: "Déséquilibré",  cls: "sm-desequilibre", flaw: 2 },
-  { minPct: 1,  name: "Brisé",         cls: "sm-brise",        flaw: 3 },
-  { minPct: -Infinity, name: "Perdu",  cls: "sm-perdu",        flaw: 3 }
+  { minPct: 90, name: "Stable",        cls: "sm-stable",       flaw: null, affliction: null },
+  { minPct: 75, name: "Stressé",       cls: "sm-stresse",      flaw: null, affliction: null },
+  { minPct: 50, name: "Perturbé",      cls: "sm-perturbe",     flaw: 0,    affliction: "minor" },
+  { minPct: 25, name: "Instable",      cls: "sm-instable",     flaw: 1,    affliction: "major" },
+  { minPct: 10, name: "Déséquilibré",  cls: "sm-desequilibre", flaw: 2,    affliction: "severe" },
+  { minPct: 1,  name: "Brisé",         cls: "sm-brise",        flaw: 3,    affliction: null },
+  { minPct: -Infinity, name: "Perdu",  cls: "sm-perdu",        flaw: 3,    affliction: null }
 ];
+
+/* ------------------------------------------------------------------ */
+/*  Afflictions                                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Tables d'afflictions (1d6 chacune), dans l'ordre des règles.
+ * Obtenues : actor.flags["sante-mentale"].afflictions = [{ id, tier, index }]
+ */
+const AFFLICTIONS = {
+  minor: {
+    name: "Affliction mineure",
+    list: [
+      { name: "Paranoïa légère",  effect: "Désavantage aux tests de Perspicacité liés à la confiance." },
+      { name: "Phobie mineure",   effect: "Désavantage à tous les tests en présence du déclencheur." },
+      { name: "Insomnie",         effect: "25 % de chance de ne pas bénéficier d'un repos long." },
+      { name: "Cauchemars",       effect: "JS de Sagesse DD 12 après un repos long, sinon aucun bénéfice." },
+      { name: "Anxiété",          effect: "-2 aux jets d'Initiative." },
+      { name: "Compulsion",       effect: "Rituel ou comportement quotidien obligatoire ; sinon 1 niveau d'épuisement." }
+    ]
+  },
+  major: {
+    name: "Affliction majeure",
+    list: [
+      { name: "Hallucinations",     effect: "Chaque jour, 25 % de chance que le personnage voie, entende ou ressente quelque chose qui n'existe pas." },
+      { name: "Crises de panique",  effect: "20 % de chance d'être incapable d'agir pendant 1d4 rounds lors d'une situation stressante." },
+      { name: "Phobie sévère",      effect: "JS de Sagesse DD 15 ou état Effrayé face au déclencheur." },
+      { name: "Paranoïa sévère",    effect: "Désavantage à tous les tests sociaux avec des inconnus." },
+      { name: "Troubles de mémoire", effect: "Oublis d'informations ou d'événements récents." },
+      { name: "Obsession",          effect: "Fixation maladive sur un objectif ou un comportement." }
+    ]
+  },
+  severe: {
+    name: "Affliction sévère",
+    list: [
+      { name: "Délires",                effect: "Croyances totalement fausses mais inébranlables : les raisonnements logiques et les preuves ordinaires ne suffisent pas à les modifier." },
+      { name: "États de fugue",         effect: "Perd périodiquement le contrôle : lors d'un épisode, 1d4 heures sont effacées de sa mémoire et le MJ détermine ses actions." },
+      { name: "Pulsions violentes",     effect: "Menacé, acculé, humilié ou provoqué : JS de Sagesse DD 15, sinon il attaque ou neutralise immédiatement la source de son stress." },
+      { name: "Personnalités multiples", effect: "Une personnalité secondaire émerge dans certaines circonstances (danger, stress intense, magie…), avec ses propres objectifs, attitude, voire souvenirs." },
+      { name: "Catatonie",              effect: "Chaque jour, 10 % de chance de devenir totalement inerte pendant 1d4 heures : incapable de parler, d'agir, presque inconscient de son environnement." },
+      { name: "Idéations suicidaires",  effect: "Sous 50 % de ses PV max : JS de Sagesse DD 15, sinon il agit de manière dangereusement fataliste (refuse les soins, prend des risques inconsidérés)." }
+    ]
+  }
+};
+
+/** Afflictions obtenues par le personnage, enrichies de leur texte. */
+function smAfflictions(actor) {
+  const raw = actor.getFlag(MODULE_ID, "afflictions") ?? [];
+  return raw
+    .map(a => {
+      const def = AFFLICTIONS[a.tier]?.list[a.index];
+      return def ? { ...a, ...def, tierName: AFFLICTIONS[a.tier].name } : null;
+    })
+    .filter(Boolean);
+}
+
+/** Utilisateurs qui voient les messages d'un personnage : ses propriétaires et les MD. */
+function ownerRecipients(actor) {
+  return game.users
+    .filter(u => u.isGM || actor.testUserPermission(u, "OWNER"))
+    .map(u => u.id);
+}
+
+/** Pose une infobulle HTML : data-tooltip-html depuis Foundry v13, data-tooltip avant. */
+function setTooltip(el, html) {
+  if (game.release.generation >= 13) el.dataset.tooltipHtml = html;
+  else el.dataset.tooltip = html;
+}
+
+/**
+ * Carte de chat proposant au joueur de lancer le d6 d'affliction.
+ * La clé « pending » sur l'acteur garantit qu'une carte ne se tire qu'une fois.
+ */
+async function postAfflictionCard(actor, tier, levelName) {
+  const key = foundry.utils.randomID();
+  await actor.setFlag(MODULE_ID, "pending", { [key]: tier });
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    whisper: ownerRecipients(actor),
+    content: `
+      <div class="sm-card">
+        <p><strong>${escapeHtml(actor.name)}</strong> sombre dans l'état <strong>${levelName}</strong> :
+        une ${AFFLICTIONS[tier].name} le guette.</p>
+        <button type="button" class="sm-roll-affliction"><i class="fas fa-dice-d6"></i> Lancer 1d6</button>
+      </div>`,
+    flags: { [MODULE_ID]: { afflictionRoll: { actorUuid: actor.uuid, key, tier } } }
+  });
+}
+
+/** Clic sur « Lancer 1d6 » : tire l'affliction, l'ajoute à la fiche, annonce le résultat. */
+async function rollAffliction(message, button) {
+  const data = message.getFlag(MODULE_ID, "afflictionRoll");
+  const actor = await fromUuid(data.actorUuid);
+  if (!actor?.isOwner) {
+    ui.notifications.warn("Seul le joueur de ce personnage peut lancer ce dé.");
+    return;
+  }
+  const pending = actor.getFlag(MODULE_ID, "pending") ?? {};
+  if (!(data.key in pending)) {
+    ui.notifications.info("Cette affliction a déjà été tirée.");
+    markCardDone(button);
+    return;
+  }
+  markCardDone(button); // évite un double clic pendant le jet
+
+  const roll = await new Roll("1d6").evaluate();
+  const index = roll.total - 1;
+  const def = AFFLICTIONS[data.tier].list[index];
+
+  const afflictions = [...(actor.getFlag(MODULE_ID, "afflictions") ?? []),
+    { id: foundry.utils.randomID(), tier: data.tier, index }];
+  await actor.update({
+    [`flags.${MODULE_ID}.afflictions`]: afflictions,
+    [`flags.${MODULE_ID}.pending.-=${data.key}`]: null
+  });
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor }),
+    whisper: ownerRecipients(actor),
+    rolls: [roll],
+    sound: CONFIG.sounds.dice,
+    flavor: `${AFFLICTIONS[data.tier].name} : ${def.name}`,
+    content: `<div class="sm-card"><p><strong>${def.name}</strong> — ${def.effect}</p></div>`
+  });
+}
+
+function markCardDone(button) {
+  button.disabled = true;
+  button.innerHTML = `<i class="fas fa-check"></i> Affliction tirée`;
+}
+
+/** Branche le bouton des cartes d'affliction (HTMLElement en v13, jQuery avant). */
+function onRenderChatMessage(message, htmlArg) {
+  const data = message.getFlag(MODULE_ID, "afflictionRoll");
+  if (!data) return;
+  const root = htmlArg instanceof HTMLElement ? htmlArg : htmlArg?.[0];
+  const button = root?.querySelector(".sm-roll-affliction");
+  if (!button) return;
+
+  // Carte déjà tirée (ou acteur supprimé) : bouton désactivé.
+  const actor = fromUuidSync(data.actorUuid);
+  const pending = actor?.getFlag(MODULE_ID, "pending") ?? {};
+  if (!(data.key in pending)) markCardDone(button);
+
+  button.addEventListener("click", ev => {
+    ev.preventDefault();
+    rollAffliction(message, button);
+  });
+}
+
+/** MD : retire une affliction (guérison magique, décision narrative…). */
+async function removeAffliction(actor, id) {
+  const aff = smAfflictions(actor).find(a => a.id === id);
+  if (!aff) return;
+  const question = `Retirer l'affliction « ${aff.name} » de ${escapeHtml(actor.name)} ?`;
+  const ok = foundry.applications?.api?.DialogV2
+    ? await foundry.applications.api.DialogV2.confirm({
+        window: { title: "Santé Mentale" }, content: `<p>${question}</p>` })
+    : await Dialog.confirm({ title: "Santé Mentale", content: `<p>${question}</p>` });
+  if (!ok) return;
+  const rest = (actor.getFlag(MODULE_ID, "afflictions") ?? []).filter(a => a.id !== id);
+  await actor.setFlag(MODULE_ID, "afflictions", rest);
+}
 
 /* ------------------------------------------------------------------ */
 /*  Faiblesses de l'Ombre                                              */
@@ -175,6 +340,11 @@ async function commitValue(actor, cur, next, max) {
       content: `<em>${escapeHtml(actor.name)} passe de ${before.name} à ${after.name}.${flawText}</em>`,
       whisper: [game.user.id]
     });
+  }
+
+  // En descendant, une carte d'affliction par palier franchi (Perturbé, Instable, Déséquilibré).
+  for (let i = LEVELS.indexOf(before) + 1; i <= LEVELS.indexOf(after); i++) {
+    if (LEVELS[i].affliction) await postAfflictionCard(actor, LEVELS[i].affliction, LEVELS[i].name);
   }
 }
 
@@ -307,11 +477,31 @@ function buildTracker(actor) {
   `;
   el.querySelector(".sm-values").dataset.tooltip = "Santé Mentale — tapez une valeur, ou +X / -X";
 
-  // Infobulle HTML : data-tooltip-html depuis Foundry v13, data-tooltip avant.
-  const badge = el.querySelector(".sm-level");
-  const tip = flawTooltip(actor, lvl);
-  if (game.release.generation >= 13) badge.dataset.tooltipHtml = tip;
-  else badge.dataset.tooltip = tip;
+  setTooltip(el.querySelector(".sm-level"), flawTooltip(actor, lvl));
+
+  // Pastilles d'afflictions : effet au survol, clic droit du MD pour retirer.
+  const afflictions = smAfflictions(actor);
+  if (afflictions.length) {
+    const list = document.createElement("div");
+    list.classList.add("sm-afflictions");
+    for (const aff of afflictions) {
+      const pill = document.createElement("span");
+      pill.classList.add("sm-affliction", `sm-aff-${aff.tier}`);
+      pill.textContent = aff.name;
+      setTooltip(pill, `<strong>${aff.tierName} : ${aff.name}</strong><br>${aff.effect}`
+        + (game.user.isGM ? "<br><em>Clic droit : retirer</em>" : ""));
+      if (game.user.isGM) {
+        pill.addEventListener("contextmenu", ev => {
+          if (ev.shiftKey) return; // Shift + clic droit reste réservé au repositionnement
+          ev.preventDefault();
+          ev.stopPropagation();
+          removeAffliction(actor, aff.id);
+        });
+      }
+      list.appendChild(pill);
+    }
+    el.appendChild(list);
+  }
 
   el.querySelector(".sm-shadow")?.addEventListener("change", async ev => {
     if (ev.target.value) await actor.setFlag(MODULE_ID, "shadow", ev.target.value);
@@ -422,6 +612,7 @@ Hooks.once("init", () => {
       level: (actor) => smLevel(smCurrent(actor), smMax(actor)).name,
       shadow: (actor) => smShadow(actor)?.name ?? null,
       flaw: (actor) => smFlaw(actor, smLevel(smCurrent(actor), smMax(actor)))?.name ?? null,
+      afflictions: (actor) => smAfflictions(actor).map(a => a.name),
       set: async (actor, value) => applyInput(actor, String(value)),
       adjust: async (actor, delta) =>
         applyInput(actor, (delta >= 0 ? "+" : "") + delta)
@@ -437,3 +628,9 @@ Hooks.once("ready", () => {
 Hooks.on("renderActorSheet", onRenderSheet);
 // Fiche AppV2 (dnd5e 5.x sur Foundry v13)
 Hooks.on("renderActorSheetV2", onRenderSheet);
+
+// Cartes de tirage d'affliction dans le chat (le hook a changé de nom en v13).
+Hooks.once("init", () => {
+  if (game.release.generation >= 13) Hooks.on("renderChatMessageHTML", onRenderChatMessage);
+  else Hooks.on("renderChatMessage", onRenderChatMessage);
+});

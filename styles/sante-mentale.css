@@ -124,6 +124,39 @@ body.sm-shift-held .sm-tracker {
   white-space: nowrap;
 }
 
+/* ---- Afflictions (pastilles sous l'encart) ------------------------ */
+
+.sm-tracker .sm-afflictions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  max-width: 180px;
+}
+
+.sm-tracker .sm-affliction {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.sm-aff-minor   { background: #f9a825; color: #000; }               /* jaune */
+.sm-aff-major   { background: #ef6c00; color: #fff; }               /* orange */
+.sm-aff-severe  { background: #b71c1c; color: #fff; }               /* rouge */
+
+/* ---- Carte de tirage dans le chat --------------------------------- */
+
+.sm-card p {
+  margin: 0 0 4px;
+}
+
+.sm-card button.sm-roll-affliction:disabled {
+  opacity: 0.6;
+}
+
 /* ---- Sécurité : si l'encart retombe dans un header clair (vieille fiche) */
 .sheet-header:not(.dark) .sm-tracker {
   background: rgba(0, 0, 0, 0.55);

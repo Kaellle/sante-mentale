@@ -32,6 +32,8 @@ Système de santé mentale maison pour la table des héritiers du Dragons, affic
 | Déséquilibré | 3e défaut |
 | Brisé, Perdu | 4e défaut |
 
+**Afflictions :** en descendant à Perturbé, Instable ou Déséquilibré, une carte apparaît dans le chat (visible du joueur et du MD) : le joueur clique sur « Lancer 1d6 » pour tirer respectivement une affliction mineure, majeure ou sévère. Une chute de plusieurs paliers d'un coup donne une carte par palier franchi. Les afflictions restent quand la SM remonte : seul le MD les retire.
+
 ## Utilisation
 
 - L'encart apparaît dans l'en-tête de la fiche de personnage, à côté du badge de niveau.
@@ -41,6 +43,7 @@ Système de santé mentale maison pour la table des héritiers du Dragons, affic
 - Possibilité de déplacer l'encart avec un shift + clic gauche.
 - Le MD choisit la Faiblesse de l'Ombre dans la liste déroulante de l'encart (visible de lui seul) ; le joueur voit le nom de sa faiblesse.
 - Survoler la pastille d'état affiche le défaut d'Ombre actif et sa description.
+- Les afflictions s'affichent en pastilles sous l'encart (jaune mineure, orange majeure, rouge sévère), effet au survol. Le MD en retire une d'un clic droit (Restauration supérieure, Guérison…).
 
 ## API pour macros (optionnel)
 
@@ -53,9 +56,11 @@ sm.max(actor);                // maximum
 sm.level(actor);              // "Stable", "Brisé", etc.
 sm.shadow(actor);             // "Soif de pouvoir" (ou null)
 sm.flaw(actor);               // défaut actif : "Arrogant" (ou null)
+sm.afflictions(actor);        // ["Insomnie", "Hallucinations"]
 ```
 ## Données
 
 La valeur actuelle est stockée dans un flag de l'acteur : `flags.sante-mentale.value`.
 La Faiblesse de l'Ombre aussi : `flags.sante-mentale.shadow` (`vengeance`, `dragonSickness`, `power`, `secrets`, `wandering`).
+Les afflictions : `flags.sante-mentale.afflictions` (`[{ id, tier, index }]`), et les cartes pas encore tirées : `flags.sante-mentale.pending`.
 Le maximum n'est jamais stocké, il est recalculé en direct.
