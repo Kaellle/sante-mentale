@@ -40,7 +40,7 @@ Système de santé mentale maison pour la table des héritiers du Dragons, affic
 - Le champ de gauche est la SM actuelle : tape une valeur (`42`), ou un delta comme sur les PV (`-5`, `+3`), puis Entrée.
 - La première fois, la SM est considérée au maximum.
 - La valeur est visible par les joueurs, modifiable uniquement par les propriétaires de la fiche (et le MJ).
-- Possibilité de déplacer l'encart avec un shift + clic gauche.
+- Déplacer l'encart : glisser son titre « Santé Mentale », ou Shift + glisser n'importe où dessus. Shift + clic droit le remet à sa place.
 - Le MD choisit la Faiblesse de l'Ombre dans la liste déroulante de l'encart (visible de lui seul) ; le joueur voit le nom de sa faiblesse.
 - Survoler la pastille d'état affiche le défaut d'Ombre actif et sa description.
 - Les afflictions s'affichent en pastilles sous l'encart (jaune mineure, orange majeure, rouge sévère), effet au survol. Le MD en change une d'un clic (les règles : « lancez 1d6 ou choisissez ») et en retire une d'un clic droit (Restauration supérieure, Guérison…).

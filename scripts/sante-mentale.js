@@ -413,13 +413,18 @@ async function applyInput(actor, rawText) {
 /*  Déplacement de l'encart (Shift + clic gauche)                      */
 /* ------------------------------------------------------------------ */
 
-/** Rend l'encart déplaçable ; la position choisie est mémorisée côté client (par joueur). */
+/**
+ * Rend l'encart déplaçable : Shift + glisser n'importe où dessus, ou glisser le titre
+ * « Santé Mentale » sans Shift. La position est mémorisée côté client (par joueur).
+ */
 function makeDraggable(tracker) {
   let dragging = false;
   let startX = 0, startY = 0, origLeft = 0, origTop = 0;
 
+  // Phase de capture : l'encart intercepte le clic avant le champ, la liste ou les pastilles.
   tracker.addEventListener("pointerdown", ev => {
-    if (!ev.shiftKey || ev.button !== 0) return;
+    if (ev.button !== 0) return;
+    if (!ev.shiftKey && !ev.target.closest(".sm-label")) return;
     ev.preventDefault();
     ev.stopPropagation();
 
@@ -428,17 +433,14 @@ function makeDraggable(tracker) {
     origLeft = rect.left - parentRect.left;
     origTop = rect.top - parentRect.top;
 
-    tracker.style.position = "absolute";
-    tracker.style.left = `${origLeft}px`;
-    tracker.style.top = `${origTop}px`;
-    tracker.style.margin = "0";
+    setMoved(tracker, origLeft, origTop);
 
     dragging = true;
     startX = ev.clientX;
     startY = ev.clientY;
     tracker.classList.add("sm-tracker--dragging");
     tracker.setPointerCapture(ev.pointerId);
-  });
+  }, { capture: true });
 
   tracker.addEventListener("pointermove", ev => {
     if (!dragging) return;
@@ -461,22 +463,29 @@ function makeDraggable(tracker) {
   tracker.addEventListener("contextmenu", async ev => {
     if (!ev.shiftKey) return;
     ev.preventDefault();
+    ev.stopPropagation();
     await game.settings.set(MODULE_ID, "trackerPosition", null);
+    tracker.classList.remove("sm-tracker--moved");
     tracker.style.position = "";
     tracker.style.left = "";
     tracker.style.top = "";
     tracker.style.margin = "";
-  });
+  }, { capture: true });
+}
+
+/** Place l'encart en position libre (au-dessus du reste de la fiche, pour rester cliquable). */
+function setMoved(tracker, left, top) {
+  tracker.classList.add("sm-tracker--moved");
+  tracker.style.position = "absolute";
+  tracker.style.left = `${left}px`;
+  tracker.style.top = `${top}px`;
+  tracker.style.margin = "0";
 }
 
 /** Applique la position mémorisée (si l'utilisateur a déjà déplacé l'encart). */
 function applySavedPosition(tracker) {
   const pos = game.settings.get(MODULE_ID, "trackerPosition");
-  if (!pos) return;
-  tracker.style.position = "absolute";
-  tracker.style.left = `${pos.left}px`;
-  tracker.style.top = `${pos.top}px`;
-  tracker.style.margin = "0";
+  if (pos) setMoved(tracker, pos.left, pos.top);
 }
 
 /* ------------------------------------------------------------------ */

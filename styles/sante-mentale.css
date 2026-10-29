@@ -21,6 +21,18 @@ body.sm-shift-held .sm-tracker {
   cursor: grab;
 }
 
+/* Déplacé hors de sa place : passe au-dessus du contenu de la fiche, sinon il devient incliquable. */
+.sm-tracker.sm-tracker--moved {
+  z-index: 50;
+  pointer-events: auto;
+}
+
+/* Le titre sert de poignée : on peut le glisser sans Shift. */
+.sm-tracker .sm-label {
+  cursor: move;
+  user-select: none;
+}
+
 .sm-tracker.sm-tracker--dragging {
   cursor: grabbing;
   opacity: 0.85;
