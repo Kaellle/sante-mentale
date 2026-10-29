@@ -4,10 +4,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 4px 10px;
+  gap: 4px;
+  min-width: 150px;
+  padding: 6px 12px;
   margin: 0 6px;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.6);
   border: 1px solid var(--dnd5e-color-gold, #9f9275);
   border-radius: 8px;
   backdrop-filter: blur(2px);
@@ -28,7 +29,7 @@ body.sm-shift-held .sm-tracker {
 
 .sm-tracker .sm-label {
   font-family: var(--dnd5e-font-roboto-condensed, "Roboto Condensed", sans-serif);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -45,8 +46,8 @@ body.sm-shift-held .sm-tracker {
 }
 
 .sm-tracker input.sm-current {
-  width: 42px;
-  height: 22px;
+  width: 50px;
+  height: 26px;
   padding: 0;
   text-align: right;
   background: transparent;
@@ -54,7 +55,7 @@ body.sm-shift-held .sm-tracker {
   border-bottom: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 0;
   color: #fff;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 700;
 }
 
@@ -71,22 +72,22 @@ body.sm-shift-held .sm-tracker {
 
 .sm-tracker .sm-sep {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  font-size: 17px;
 }
 
 .sm-tracker .sm-max {
-  font-size: 14px;
+  font-size: 17px;
   color: rgba(255, 255, 255, 0.85);
 }
 
 /* ---- Pastille de niveau d'état ------------------------------------ */
 
 .sm-tracker .sm-level {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 1px 8px;
+  padding: 2px 10px;
   border-radius: 999px;
   color: #fff;
   white-space: nowrap;
@@ -103,10 +104,11 @@ body.sm-shift-held .sm-tracker {
 /* ---- Faiblesse de l'Ombre ----------------------------------------- */
 
 .sm-tracker select.sm-shadow {
-  max-width: 150px;
-  height: 18px;
-  padding: 0 2px;
-  font-size: 10px;
+  width: 100%;
+  max-width: 180px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 11px;
   color: #fff;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -118,7 +120,7 @@ body.sm-shift-held .sm-tracker {
 }
 
 .sm-tracker .sm-shadow-name {
-  font-size: 10px;
+  font-size: 11px;
   font-style: italic;
   color: rgba(255, 255, 255, 0.75);
   white-space: nowrap;
@@ -130,17 +132,27 @@ body.sm-shift-held .sm-tracker {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 2px;
-  max-width: 180px;
+  gap: 3px;
+  max-width: 200px;
 }
 
 .sm-tracker .sm-affliction {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 0 5px;
+  line-height: 1.5;
+  padding: 1px 7px;
   border-radius: 4px;
   white-space: nowrap;
   cursor: help;
+}
+
+.sm-tracker .sm-affliction--editable {
+  cursor: pointer;
+}
+
+.sm-tracker .sm-affliction--editable:hover {
+  filter: brightness(1.15);
+  outline: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .sm-aff-minor   { background: #f9a825; color: #000; }               /* jaune */

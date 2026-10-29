@@ -43,7 +43,7 @@ Système de santé mentale maison pour la table des héritiers du Dragons, affic
 - Possibilité de déplacer l'encart avec un shift + clic gauche.
 - Le MD choisit la Faiblesse de l'Ombre dans la liste déroulante de l'encart (visible de lui seul) ; le joueur voit le nom de sa faiblesse.
 - Survoler la pastille d'état affiche le défaut d'Ombre actif et sa description.
-- Les afflictions s'affichent en pastilles sous l'encart (jaune mineure, orange majeure, rouge sévère), effet au survol. Le MD en retire une d'un clic droit (Restauration supérieure, Guérison…).
+- Les afflictions s'affichent en pastilles sous l'encart (jaune mineure, orange majeure, rouge sévère), effet au survol. Le MD en change une d'un clic (les règles : « lancez 1d6 ou choisissez ») et en retire une d'un clic droit (Restauration supérieure, Guérison…).
 
 ## API pour macros (optionnel)
 

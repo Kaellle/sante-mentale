@@ -234,6 +234,46 @@ async function removeAffliction(actor, id) {
   await actor.setFlag(MODULE_ID, "afflictions", rest);
 }
 
+/** MD : remplace une affliction par une autre de son choix (les règles : « lancez 1d6 ou choisissez »). */
+async function changeAffliction(actor, id) {
+  const aff = smAfflictions(actor).find(a => a.id === id);
+  if (!aff) return;
+
+  const groups = Object.entries(AFFLICTIONS).map(([tier, t]) => {
+    const options = t.list.map((def, index) => {
+      const selected = tier === aff.tier && index === aff.index ? "selected" : "";
+      return `<option value="${tier}:${index}" ${selected}>${def.name}</option>`;
+    }).join("");
+    return `<optgroup label="${t.name}">${options}</optgroup>`;
+  }).join("");
+  const content = `<p>Remplacer « ${aff.name} » par :</p>
+    <select name="sm-affliction" style="width:100%">${groups}</select>`;
+
+  let choice;
+  if (foundry.applications?.api?.DialogV2) {
+    choice = await foundry.applications.api.DialogV2.prompt({
+      window: { title: `Santé Mentale — ${actor.name}` },
+      content,
+      ok: { label: "Remplacer", callback: (ev, button) => button.form.elements["sm-affliction"].value },
+      rejectClose: false
+    });
+  } else {
+    choice = await Dialog.prompt({
+      title: `Santé Mentale — ${actor.name}`,
+      content,
+      label: "Remplacer",
+      callback: html => html.find("select").val(),
+      rejectClose: false
+    });
+  }
+  if (!choice) return;
+
+  const [tier, index] = choice.split(":");
+  const list = (actor.getFlag(MODULE_ID, "afflictions") ?? [])
+    .map(a => a.id === id ? { ...a, tier, index: Number(index) } : a);
+  await actor.setFlag(MODULE_ID, "afflictions", list);
+}
+
 /* ------------------------------------------------------------------ */
 /*  Faiblesses de l'Ombre                                              */
 /* ------------------------------------------------------------------ */
@@ -489,8 +529,15 @@ function buildTracker(actor) {
       pill.classList.add("sm-affliction", `sm-aff-${aff.tier}`);
       pill.textContent = aff.name;
       setTooltip(pill, `<strong>${aff.tierName} : ${aff.name}</strong><br>${aff.effect}`
-        + (game.user.isGM ? "<br><em>Clic droit : retirer</em>" : ""));
+        + (game.user.isGM ? "<br><em>Clic : changer — Clic droit : retirer</em>" : ""));
       if (game.user.isGM) {
+        pill.classList.add("sm-affliction--editable");
+        pill.addEventListener("click", ev => {
+          if (ev.shiftKey) return; // Shift + clic reste réservé au déplacement
+          ev.preventDefault();
+          ev.stopPropagation();
+          changeAffliction(actor, aff.id);
+        });
         pill.addEventListener("contextmenu", ev => {
           if (ev.shiftKey) return; // Shift + clic droit reste réservé au repositionnement
           ev.preventDefault();
